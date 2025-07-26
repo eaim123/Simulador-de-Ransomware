@@ -1,3 +1,15 @@
+"""
+====================================================
+    Nombre del Programa :     Simulador de Ransomware
+    Descripción         :     Este script aplica cifrado AES a archivos seleccionados.
+    Autor               :     Eddy Infante Mata
+    Versión             :     1.0
+    Fecha               :     26 de julio de 2025
+    Lenguaje            :     Python 3.11
+    Licencia            :     MIT License
+====================================================
+"""
+
 MIT License
 
 Copyright (c) 2025 eaim123
