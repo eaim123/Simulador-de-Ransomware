@@ -33,26 +33,30 @@ import os
 from cryptography.fernet import Fernet, InvalidToken
 
 # === CONFIGURACIÓN ===
-EXTENSIONES_OBJETIVO = ['.txt', '.jpg', '.jpeg', '.png', '.docx', '.odt', '.ods', '.odp']
+
+EXTENSIONES_OBJETIVO = ['.txt', '.jpg', '.jpeg', '.png', '.mp4', '.docx', '.odt', '.ods', '.odp']
 ARCHIVOS_EXCLUIDOS = [
     "ransomware_simulador.py",
     "desencriptar.py",
     ".clave.key",
-    ".README_RESCATE.txt"
+    "README_RESCATE.txt"
 ]
 
-# === CARGAR CLAVE ===
+# === CARGA DE CLAVE ===
+
 if not os.path.exists(".clave.key"):
-    print("❌ ERROR: No se encontró 'clave.key'. No se puede desencriptar.")
-    exit()
+    print("❌ ERROR: No se encontró '.clave.key'. No se puede desencriptar.")
+    exit(1)
 
 with open(".clave.key", "rb") as f:
     clave = f.read()
 
 fernet = Fernet(clave)
 
-# === DESENCRIPTAR ARCHIVOS ===
+# === DESENCRIPTADO DE ARCHIVOS ===
+
 archivos_restaurados = 0
+archivos_fallidos = 0
 
 for root, _, files in os.walk(os.path.abspath(".")):
     for nombre_archivo in files:
@@ -69,11 +73,19 @@ for root, _, files in os.walk(os.path.abspath(".")):
                 archivos_restaurados += 1
                 print(f"🔓 Restaurado: {ruta_completa}")
             except InvalidToken:
-                print(f"⚠️ No se pudo desencriptar: {ruta_completa} (token inválido)")
+                archivos_fallidos += 1
+                print(f"⚠️ No se pudo desencriptar (token inválido): {ruta_completa}")
             except Exception as e:
+                archivos_fallidos += 1
                 print(f"⚠️ Error en {ruta_completa}: {e}")
 
-if archivos_restaurados > 0:
-    print(f"\n✅ Restauración completa: {archivos_restaurados} archivo(s) desencriptado(s).")
-else:
+# === RESULTADO FINAL ===
+
+print("\n📊 Resultado de la restauración:")
+print(f"✅ Archivos desencriptados correctamente: {archivos_restaurados}")
+print(f"❌ Archivos que no pudieron desencriptarse: {archivos_fallidos}")
+
+if archivos_restaurados == 0:
     print("\n⚠️ No se desencriptó ningún archivo.")
+else:
+    print("\n🎉 Desencriptado finalizado correctamente.")
